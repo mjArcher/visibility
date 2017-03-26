@@ -26,13 +26,13 @@ var dx = 1e-6;
 // for(i=0; i<10; i++) {
 //
 
-// var segment1 = {
-// 	points: [{x_: 450, y_: 500},{x_: 420, y_: 420}], // these need to be actual values not variables defined within 
-//   x1: 450,
-//   y1: 500,
-//   x2: 420,
-//   y2: 420
-// }
+var segment1 = {
+	points: [{x_: 450, y_: 500},{x_: 420, y_: 420}], // these need to be actual values not variables defined within 
+  x1: 450,
+  y1: 500,
+  x2: 420,
+  y2: 420
+}
 
 // var segment2 = {
 // 	points: [{x_: 140, y_: 140},{x_: 170, y_: 170}], // these need to be actual values not variables defined within 
@@ -49,24 +49,24 @@ var dx = 1e-6;
 //   y2: 270
 // }
 
-var segment4 = {
-	points: [{x_: 340, y_: 540},{x_: 341, y_: 770}], // these need to be actual values not variables defined within 
-  x1: 340,
-  y1: 540, 
-  x2: 340,
-  y2: 770,
+// var segment4 = {
+// 	points: [{x_: 340, y_: 540},{x_: 341, y_: 770}], // these need to be actual values not variables defined within 
+//   x1: 340,
+//   y1: 540, 
+//   x2: 340,
+//   y2: 770,
 	
-}
+// }
 
 function dist(a, b){
  return Math.sqrt(a*a + b*b);
 }
 
 
-// barriers.push(segment1);
+barriers.push(segment1);
 // barriers.push(segment2);
 // barriers.push(segment3);
-barriers.push(segment4);
+// barriers.push(segment4);
 console.log(barriers.length);
 
 function getRand(min, max) {
@@ -112,7 +112,7 @@ function draw() {
   // }
   for(i=0; i < barriers.length;i++){
     ctx.beginPath();
-    var points = barriers[0].points;
+    var points = barriers[i].points;
     for(j=0; j < points.length-1; j++){
       ctx.moveTo(points[j].x_,points[j].y_);
       ctx.lineTo(points[j+1].x_,points[j+1].y_);
@@ -167,6 +167,7 @@ function draw() {
   //minlimits
   var intersect;
   var maxLimits = [];
+  var minLimits = [];
   // add the corners
   maxLimits.push([true, corners[0].x, corners[0].y]);
   maxLimits.push([true, corners[1].x, corners[1].y]);
@@ -193,34 +194,60 @@ function draw() {
       maxLimits.push(p);
   }
 
-  
-  // for(i = 0; i < vertices.length; i++)
-  // {
-  //   // initialise to maxlimit
-  //   for(j = 0; j < barriers.length; j++)
-  //   {
-  //      p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, barriers[j].points[0].x_, barriers[j].points[0].y_, barriers[j].points[1].x_, barriers[j].points[1].y_)
-  //     {
-  //       if(p[0])
-  //       {
-  //         // determine if this is less than the  
-  //       }
+ 
+  //determine if there is a 
+  for(i = 0; i < vertices.length; i++)
+  {
+    var temp = maxLimits[i];
+    for(j = 0; j < barriers.length; j++) //need an additional loop here for when barriers have more than 1 segment (2 points)
+    {
+       p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, barriers[j].points[0].x_, barriers[j].points[0].y_,
+        barriers[j].points[1].x_, barriers[j].points[1].y_);
+      if(p[0]) //intersection
+      {
+        if(dist(p[1]-m_x, p[2]-m_y) < dist(temp[1]-m_x, temp[2]-m_y))
+        {
+          temp[1] = p[1];
+          temp[2] = p[2];
+        }
+      }
+    }
+    minLimits.push(temp);
+  }
 
-  //     }
-  //   }
-  //   closestPts.push(temp);
-  // } 
-  
-  ctx.strokeStyle = "rgb(255,0,0)";
 
-  console.log("maxlimits " + maxLimits.length)
-  for(i=0; i < maxLimits.length; i++){
+
+  ctx.strokeStyle = "rgb(0,255,0)";
+  for(i=0; i < minLimits.length; i++){
     ctx.beginPath(); 
     ctx.moveTo(m_x, m_y);
-    ctx.lineTo(maxLimits[i][1],maxLimits[i][2]);
+    ctx.lineTo(minLimits[i][1],minLimits[i][2]);
     ctx.stroke();
   }
 
+  //sort minLimits
+
+  minLimits.sort(function(p1,p2){
+    var angle1 =  Math.atan2(p1[2]-m_y,p1[1]-m_x);
+    var angle2 =  Math.atan2(p2[2]-m_y,p2[1]-m_x);
+    if (angle1 > angle2) return 1;
+    else if (angle1 < angle2) return -1;
+    return 0;
+  });
+
+  ctx.font = "20px Arial";
+  // for(i=0; i < minLimits.length; i++){
+  //   ctx.fillText(i,minLimits[i][1],minLimits[i][2]);
+  // }
+
+  // console.log("minLimits " + minLimits.length)
+  // ctx.strokeStyle = "rgb(255,0,0)";
+  // for(i=0; i < minLimits.length-1; i++){
+  //   ctx.beginPath(); 
+  //   ctx.moveTo(minLimits[i][1],minLimits[i][2]);
+  //   ctx.lineTo(minLimits[i][1],minLimits[i][2]);
+  //   ctx.stroke();
+  // }
 
   window.requestAnimationFrame(draw);
 }
