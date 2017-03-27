@@ -20,7 +20,7 @@ var vertices = [];
 
 var corners = [];
 
-var dx = 1e-6;
+var dx = 25;
 
 // initialise some segments
 // for(i=0; i<10; i++) {
@@ -31,43 +31,62 @@ var segment1 = {
   x1: 450,
   y1: 500,
   x2: 420,
-  y2: 420
+  y2: 420,
+  n: [0,0]
 }
 
-// var segment2 = {
-// 	points: [{x_: 140, y_: 140},{x_: 170, y_: 170}], // these need to be actual values not variables defined within 
-//   x1: 140,
-//   y1: 140, 
-//   x2: 170,
-//   y2: 170
-// }
-// var segment3 = {
-// 	points: [{x_: 380, y_: 240},{x_: 270, y_: 270}], // these need to be actual values not variables defined within 
-//   x1: 380,
-//   y1: 240, 
-//   x2: 270,
-//   y2: 270
-// }
-
-// var segment4 = {
-// 	points: [{x_: 340, y_: 540},{x_: 341, y_: 770}], // these need to be actual values not variables defined within 
-//   x1: 340,
-//   y1: 540, 
-//   x2: 340,
-//   y2: 770,
-	
-// }
-
-function dist(a, b){
- return Math.sqrt(a*a + b*b);
+var segment2 = {
+	points: [{x_: 140, y_: 140},{x_: 170, y_: 170}], // these need to be actual values not variables defined within 
+  x1: 140,
+  y1: 140, 
+  x2: 170,
+  y2: 170,
+  n: [0,0]
+}
+var segment3 = {
+	points: [{x_: 380, y_: 240},{x_: 270, y_: 270}], // these need to be actual values not variables defined within 
+  x1: 380,
+  y1: 240, 
+  x2: 270,
+  y2: 270,
+  n: [0,0]
 }
 
+var segment4 = {
+	points: [{x_: 340, y_: 540},{x_: 341, y_: 770}], // these need to be actual values not variables defined within 
+  x1: 340,
+  y1: 540, 
+  x2: 340,
+  y2: 770,
+  n: [0,0]
+}
 
-barriers.push(segment1);
+//distance to a point given by x, y (or length of vector given components, x, y)
+function dist(x, y){
+ return Math.sqrt(x*x + y*y);
+}
+
+function normal(x1, y1, x2, y2){
+  var n;  
+  var dx1 = x2 - x1;
+  var dy1 = y2 - y1;
+  var length = dist(dx1, dy1);
+  return n = [-dy1/length, dx1/length];
+}
+
+// barriers.push(segment1);
 // barriers.push(segment2);
-// barriers.push(segment3);
+barriers.push(segment3);
 // barriers.push(segment4);
 console.log(barriers.length);
+
+//this isn't very general but will work for now
+for(i=0; i< barriers.length;i++){
+  for(j=0; j < barriers[i].points.length - 1; j++){
+    barriers[i].n = normal(barriers[i].points[j].x_, barriers[i].points[j].y_, barriers[i].points[j+1].x_, barriers[i].points[j+1].y_);
+    console.log(barriers[i].n);
+  }
+}
 
 function getRand(min, max) {
       return Math.random() * (max - min) + min;
@@ -75,8 +94,8 @@ function getRand(min, max) {
 
 function getIntersection(x1,  y1,  x2,  y2,  x3,  y3,  x4,  y4)
 {
-  var x;
-  var y;
+  var x = 0;
+  var y = 0;
   var b = false;
   var denom = (x3 - x4) * (y2 - y1) + (x2 - x1) * (y4 - y3);
 
@@ -110,6 +129,7 @@ function draw() {
   // if (canvas.getContext) {
   //   ctx.fillStyle = "rgb(255,0,0)";
   // }
+  // draw all of the line segments in each barrier.
   for(i=0; i < barriers.length;i++){
     ctx.beginPath();
     var points = barriers[i].points;
@@ -120,6 +140,7 @@ function draw() {
     }
   }
 
+  // draw mouse pointer
   ctx.beginPath();
   ctx.arc(mouse_pos_x, mouse_pos_y, 5, 0, 2 * Math.PI);
   ctx.fill();
@@ -133,20 +154,26 @@ function draw() {
 
 	//Add all the vertices of the barriers to an array to construct rays to them from the light source
 	for (i = 0; i < barriers.length; i++) {
+    //each barrier has an associated normal
 		for (j = 0; j < barriers[i].points.length; j++) { // number of points in each barrier
 			var vertex = {
 				x: barriers[i].points[j].x_,
 				y: barriers[i].points[j].y_
 			};
 			vertices.push(vertex); 
+
+      var n = barriers[i].n;
+      //get tangent vector
+      var t = [-n[1], n[0]];
+
       var vertexp = {
-        x: barriers[i].points[j].x_ + dx,
-        y: barriers[i].points[j].y_ + dx
+        x: barriers[i].points[j].x_ + dx*t[0],
+        y: barriers[i].points[j].y_ + dx*t[1]
       }
 			vertices.push(vertexp); 
       var vertexm = {
-        x: barriers[i].points[j].x_ - dx,
-        y: barriers[i].points[j].y_ - dx
+        x: barriers[i].points[j].x_ - dx*t[0],
+        y: barriers[i].points[j].y_ - dx*t[1]
       }
 			vertices.push(vertexm); 
       // we need to add a slight offset here for all of the 
@@ -156,6 +183,15 @@ function draw() {
 
   var m_x = mouse_pos_x;
   var m_y = mouse_pos_y;
+
+
+  // m_x = 287;
+  // m_y = 287; 
+
+  ctx.beginPath();
+  ctx.arc(m_x, m_y, 5, 0, 2 * Math.PI);
+  ctx.fill();
+  ctx.stroke();
   
   //pseudocode
   //first determine the maxlimits - corners and the intersection with the 
@@ -180,35 +216,37 @@ function draw() {
   // first 4 vertices correspond to the corners 
   for(i = 4; i < vertices.length; i++)
   {
-    p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, 0, 0, canvas.width, 0);
-    if(p[0])
-      maxLimits.push(p);
-    p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, canvas.width, 0, canvas.width, canvas.height);
-    if(p[0])
-      maxLimits.push(p);
-    p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, canvas.width, canvas.height, 0, canvas.height);
-    if(p[0])
-      maxLimits.push(p);
-    p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, 0, canvas.height, 0, 0);
-    if(p[0])
-      maxLimits.push(p);
+    var p1 = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, 0, 0, canvas.width, 0);
+    var p2 = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, canvas.width, 0, canvas.width, canvas.height);
+    var p3 = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, canvas.width, canvas.height, 0, canvas.height);
+    var p4 = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, 0, canvas.height, 0, 0);
+    if(p1[0])
+      maxLimits.push(p1);
+    else if(p2[0])
+      maxLimits.push(p2);
+    else if(p3[0])
+      maxLimits.push(p3);
+    else if(p4[0])
+      maxLimits.push(p4);
   }
 
- 
+
+  // why does maxlimits become 11?
   //determine if there is a 
   for(i = 0; i < vertices.length; i++)
   {
-    var temp = maxLimits[i];
+    var temp = [ true, maxLimits[i][1], maxLimits[i][2]];
     for(j = 0; j < barriers.length; j++) //need an additional loop here for when barriers have more than 1 segment (2 points)
     {
-       p = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, barriers[j].points[0].x_, barriers[j].points[0].y_,
+       var pi = getIntersection(m_x, m_y, vertices[i].x, vertices[i].y, barriers[j].points[0].x_, barriers[j].points[0].y_,
         barriers[j].points[1].x_, barriers[j].points[1].y_);
-      if(p[0]) //intersection
+
+      if(pi[0]) //intersection
       {
-        if(dist(p[1]-m_x, p[2]-m_y) < dist(temp[1]-m_x, temp[2]-m_y))
+        if(dist(pi[1]-m_x, pi[2]-m_y) < dist(temp[1]-m_x, temp[2]-m_y))
         {
-          temp[1] = p[1];
-          temp[2] = p[2];
+          temp[1] = pi[1];
+          temp[2] = pi[2];
         }
       }
     }
@@ -216,8 +254,19 @@ function draw() {
   }
 
 
+  console.log("max " + maxLimits.length);
+  console.log("min " + minLimits.length);
 
   ctx.strokeStyle = "rgb(0,255,0)";
+  for(i=0; i < maxLimits.length; i++){
+    ctx.beginPath(); 
+    ctx.moveTo(m_x, m_y);
+    ctx.lineTo(maxLimits[i][1],maxLimits[i][2]);
+    ctx.stroke();
+  }
+
+  //pre-sort visualisation
+  ctx.strokeStyle = "rgb(255,0,0)";
   for(i=0; i < minLimits.length; i++){
     ctx.beginPath(); 
     ctx.moveTo(m_x, m_y);
@@ -226,6 +275,8 @@ function draw() {
   }
 
   //sort minLimits
+  //
+  console.log(m_x + " " + m_y);
 
   minLimits.sort(function(p1,p2){
     var angle1 =  Math.atan2(p1[2]-m_y,p1[1]-m_x);
@@ -235,19 +286,22 @@ function draw() {
     return 0;
   });
 
-  ctx.font = "20px Arial";
-  // for(i=0; i < minLimits.length; i++){
-  //   ctx.fillText(i,minLimits[i][1],minLimits[i][2]);
-  // }
+//   ctx.font = "20px Arial";
+//   for(i=0; i < minLimits.length; i++){
+//     ctx.fillText(i,minLimits[i][1],minLimits[i][2]+20);
+//   }
+  //
+  // console.log(minLimits.length)
 
-  // console.log("minLimits " + minLimits.length)
-  // ctx.strokeStyle = "rgb(255,0,0)";
-  // for(i=0; i < minLimits.length-1; i++){
-  //   ctx.beginPath(); 
-  //   ctx.moveTo(minLimits[i][1],minLimits[i][2]);
-  //   ctx.lineTo(minLimits[i][1],minLimits[i][2]);
-  //   ctx.stroke();
-  // }
+//   console.log("minLimits " + minLimits.length)
+//   ctx.strokeStyle = "rgb(0,0,255)";
+//   for(i=0; i < minLimits.length-1; i++){
+//     ctx.beginPath(); 
+//     ctx.moveTo(minLimits[i][1],minLimits[i][2]);
+//     // console.log(i + " (" + minLimits[i][1] + ", " + minLimits[i][2] + " )");
+//     ctx.lineTo(minLimits[i+1][1],minLimits[i+1][2]);
+//     ctx.stroke();
+//   }
 
   window.requestAnimationFrame(draw);
 }
