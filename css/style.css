@@ -1,5 +1,5 @@
 body {
-    background-color: #FFF;
+    background-color: #000;
     margin: 0;
     overflow: hidden;
 }
@@ -10,5 +10,5 @@ body {
     padding: 5px 15px;
     color: #000;
     font-size: 13px;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.5);
 }

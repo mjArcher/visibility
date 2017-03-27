@@ -20,7 +20,7 @@ var vertices = [];
 
 var corners = [];
 
-var dx = 25;
+var dx = 1e-04;
 
 // initialise some segments
 // for(i=0; i<10; i++) {
@@ -74,10 +74,11 @@ function normal(x1, y1, x2, y2){
   return n = [-dy1/length, dx1/length];
 }
 
-// barriers.push(segment1);
-// barriers.push(segment2);
+barriers.push(segment1);
+barriers.push(segment2);
 barriers.push(segment3);
-// barriers.push(segment4);
+barriers.push(segment4);
+
 console.log(barriers.length);
 
 //this isn't very general but will work for now
@@ -130,6 +131,8 @@ function draw() {
   //   ctx.fillStyle = "rgb(255,0,0)";
   // }
   // draw all of the line segments in each barrier.
+  ctx.lineWidth=10;
+  ctx.strokeStyle = "rgb(255,0,0)";
   for(i=0; i < barriers.length;i++){
     ctx.beginPath();
     var points = barriers[i].points;
@@ -254,8 +257,8 @@ function draw() {
   }
 
 
-  console.log("max " + maxLimits.length);
-  console.log("min " + minLimits.length);
+  // console.log("max " + maxLimits.length);
+  // console.log("min " + minLimits.length);
 
   ctx.strokeStyle = "rgb(0,255,0)";
   for(i=0; i < maxLimits.length; i++){
@@ -276,7 +279,7 @@ function draw() {
 
   //sort minLimits
   //
-  console.log(m_x + " " + m_y);
+  // console.log(m_x + " " + m_y);
 
   minLimits.sort(function(p1,p2){
     var angle1 =  Math.atan2(p1[2]-m_y,p1[1]-m_x);
@@ -290,19 +293,22 @@ function draw() {
 //   for(i=0; i < minLimits.length; i++){
 //     ctx.fillText(i,minLimits[i][1],minLimits[i][2]+20);
 //   }
-  //
-  // console.log(minLimits.length)
-
+//
+//   console.log(minLimits.length)
 //   console.log("minLimits " + minLimits.length)
 //   ctx.strokeStyle = "rgb(0,0,255)";
-//   for(i=0; i < minLimits.length-1; i++){
-//     ctx.beginPath(); 
-//     ctx.moveTo(minLimits[i][1],minLimits[i][2]);
-//     // console.log(i + " (" + minLimits[i][1] + ", " + minLimits[i][2] + " )");
-//     ctx.lineTo(minLimits[i+1][1],minLimits[i+1][2]);
-//     ctx.stroke();
-//   }
-
+  
+  ctx.closePath();
+  ctx.strokeStyle = "rgb(0,0,255)";
+  ctx.fillStyle = "rgb(255,255,255)";
+  ctx.beginPath(); 
+  ctx.moveTo(minLimits[0][1],minLimits[0][2]);
+  for(i=0; i < minLimits.length; i++){
+    ctx.lineTo(minLimits[i][1],minLimits[i][2]);
+    ctx.stroke();
+  }
+  ctx.closePath();
+  ctx.fill();
   window.requestAnimationFrame(draw);
 }
 window.requestAnimationFrame(draw);
